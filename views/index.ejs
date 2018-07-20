@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+    <style type="text/css">
+        body, html {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            font-family: "微软雅黑";
+        }
+
+        #allmap {
+            width: 100%;
+            height: 500px;
+        }
+
+        p {
+            margin-left: 5px;
+            font-size: 14px;
+        }
+    </style>
+    <script type="text/javascript"
+            src="http://api.map.baidu.com/api?v=2.0&ak=eA7U8IzN1oX6EZj7r0y7ynsGXfUENK2c"></script>
+    <title>轨迹</title>
+</head>
+<body>
+<div id="allmap"></div>
+<p>轨迹</p>
+</body>
+</html>
+<script type="text/javascript">
+    // 百度地图API功能
+    var map = new BMap.Map("allmap"); // 创建Map实例
+    var mPoint = new BMap.Point(116.404, 39.915);
+    map.enableScrollWheelZoom();
+    var pointStr = "104.038748,30.641821,104.047789,30.648128,104.063959,30.655336,104.067264,30.660307,104.067264,30.664438,104.064008,30.665316".split(",");
+    var pointArr = [];
+    for (var k = 0; k < pointStr.length; k += 2) {
+        pointArr.push({
+            lng: pointStr[k],
+            lat: pointStr[k + 1]
+        });
+    }
+    // 生成坐标点
+    var trackPoint = [];
+    for (var i = 0, j = pointArr.length; i < j; i++) {
+        trackPoint.push(new BMap.Point(pointArr[i].lng, pointArr[i].lat));
+    }
+    map.centerAndZoom(trackPoint[0], 15);
+
+    // 画线
+    var polyline = new BMap.Polyline(trackPoint, {
+        strokeColor: "#ad0e21",
+        strokeWeight: 3,
+        setStrokeStyle: "dashed",
+        strokeOpacity: 1
+    });
+    map.addOverlay(polyline);
+</script>
