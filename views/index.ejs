@@ -56,10 +56,14 @@
             data: {start: start, end: end},
             dataType: 'json',
             success: function (data) {
-                drawRoads(data);
+                if (data.err != null){
+                    alert(data.err);
+                }else {
+                    drawRoads(data);
+                }
             },
             error: function (data) {
-                alert(data.toString());
+                alert(data.responseText);
             }
         });
     }
@@ -89,14 +93,37 @@
         return trackPointsGroups;
     }
 
+    function addMarker(point) {
+        var marker = new BMap.Marker(point);
+        map.addOverlay(marker);
+    }
+
+    function addText(text,point) {
+        let opts = {
+            position: point,    // 指定文本标注所在的地理位置
+            offset: new BMap.Size(30, -30)    //设置文本偏移量
+        };
+        let label = new BMap.Label(text, opts);  // 创建文本标注对象
+        label.setStyle({
+            color : "red",
+            fontSize : "12px",
+            height : "20px",
+            lineHeight : "20px",
+            fontFamily:"微软雅黑"
+        });
+        map.addOverlay(label);
+    }
+
     function drawRoads(points) {
         if (points.length === 0) {
             return;
         }
         let colors = ["red", "yellow", "blue", "green", "violet"]
         let roads = roadAgg(points)
-        map.centerAndZoom(roads[0].points[0], 15);
         map.clearOverlays();
+        map.centerAndZoom(roads[0].points[0], 100);
+        addMarker(roads[0].points[0]);
+        addText("起始点",roads[0].points[0]);
         roads.forEach(road => {
             let color = colors[parseInt(road.cate)];
             // 画线
