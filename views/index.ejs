@@ -21,37 +21,118 @@
             font-size: 14px;
         }
     </style>
-    <script type="text/javascript"
-            src="http://api.map.baidu.com/api?v=2.0&ak=eA7U8IzN1oX6EZj7r0y7ynsGXfUENK2c"></script>
     <title>轨迹</title>
 </head>
 <body>
 <div id="allmap"></div>
 <p>轨迹</p>
+<div>
+    <label for="start"></label><input id="start" type="text" value="0"/>
+    <label for="end"></label><input id="end" type="text" value="0"/>
+    <button onclick="getRoad();">显示对应轨迹</button>
+</div>
 </body>
+
 </html>
+<script type="text/javascript"
+        src="http://api.map.baidu.com/api?v=2.0&ak=eA7U8IzN1oX6EZj7r0y7ynsGXfUENK2c"></script>
+<script type="text/javascript" src="js/validateutil.js"></script>
+<script src="js/jquery.js"></script>
+<script type="text/javascript">
+    function getRoad() {
+        let start = document.getElementById('start').value;
+        if (!isNumber(start)) {
+            alert("起始索引必须是数字");
+            return;
+        }
+        let end = document.getElementById('end').value;
+        if (!isNumber(end)) {
+            alert("结束索引必须是数字");
+            return;
+        }
+        $.ajax({
+            url: '/road/path',
+            type: 'get',
+            data: {start: start, end: end},
+            dataType: 'json',
+            success: function (data) {
+                drawRoads(data);
+            },
+            error: function (data) {
+                alert(data.toString());
+            }
+        });
+    }
+
+    function roadAgg(points) {
+        if (points.length === 0) {
+            return;
+        }
+        let category = points[0].category;
+        let trackPointsGroups = [];
+        let trackPoints = [];
+        for (let i = 0; i < points.length; i++) {
+            let pos = points[i].pos.split(",");
+            let point = new BMap.Point(pos[0], pos[1]);
+            if (points[i].category !== category) {
+                trackPointsGroups.push({points: trackPoints, cate: category})
+                trackPoints = [];
+                trackPoints.push(point)
+                category = points[i].category;
+            } else {
+                trackPoints.push(point)
+                if (i === points.length - 1) {
+                    trackPointsGroups.push({points: trackPoints, cate: category})
+                }
+            }
+        }
+        return trackPointsGroups;
+    }
+
+    function drawRoads(points) {
+        if (points.length === 0) {
+            return;
+        }
+        let colors = ["red", "yellow", "blue", "green", "violet"]
+        let roads = roadAgg(points)
+        map.centerAndZoom(roads[0].points[0], 15);
+        map.clearOverlays();
+        roads.forEach(road => {
+            let color = colors[parseInt(road.cate)];
+            // 画线
+            let polyline = new BMap.Polyline(road.points, {
+                strokeColor: color,
+                strokeWeight: 6,
+                setStrokeStyle: "dashed",
+                strokeOpacity: 1
+            });
+            map.addOverlay(polyline);
+        })
+    }
+
+</script>
 <script type="text/javascript">
     // 百度地图API功能
-    var map = new BMap.Map("allmap"); // 创建Map实例
-    var mPoint = new BMap.Point(116.404, 39.915);
+    const map = new BMap.Map("allmap"); // 创建Map实例
     map.enableScrollWheelZoom();
-    var pointStr = "104.038748,30.641821,104.047789,30.648128,104.063959,30.655336,104.067264,30.660307,104.067264,30.664438,104.064008,30.665316".split(",");
-    var pointArr = [];
-    for (var k = 0; k < pointStr.length; k += 2) {
+    let pointStr = "104.038748,30.641821,104.047789,30.648128,104.063959,30.655336,104.067264,30.660307,104.067264,30.664438,104.064008,30.665316".split(",");
+    let pointArr = [];
+    for (let k = 0; k < pointStr.length; k += 2) {
         pointArr.push({
             lng: pointStr[k],
             lat: pointStr[k + 1]
         });
     }
     // 生成坐标点
-    var trackPoint = [];
-    for (var i = 0, j = pointArr.length; i < j; i++) {
+    let trackPoint = [];
+    let i = 0, j = pointArr.length;
+    for (; i < j; i++) {
         trackPoint.push(new BMap.Point(pointArr[i].lng, pointArr[i].lat));
     }
     map.centerAndZoom(trackPoint[0], 15);
 
     // 画线
-    var polyline = new BMap.Polyline(trackPoint, {
+    let polyline = new BMap.Polyline(trackPoint, {
         strokeColor: "#ad0e21",
         strokeWeight: 3,
         setStrokeStyle: "dashed",
