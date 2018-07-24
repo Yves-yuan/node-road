@@ -9,7 +9,7 @@ router.get('/', function (req, res, next) {
         res.send({err:"起始索引不能比结束索引大"});
         return;
     }
-    fs.readFile('data/drivingdatarealpos.txt', 'utf-8', function (err, data) {
+    fs.readFile('data/drivingdatarealposbaidu.txt', 'utf-8', function (err, data) {
         let result;
         if (err) {
             res.error(err)
